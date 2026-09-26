@@ -1,25 +1,26 @@
-from datetime import datetime, timedelta, timezone
-
-from jose import jwt
-from passlib.context import CryptContext
+from fastapi import Depends, HTTPException
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from jose import JWTError, jwt
 
 from app.core.config import get_settings
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+security = HTTPBearer()
 settings = get_settings()
 
 
-def hash_password(password: str) -> str:
-    return pwd_context.hash(password)
+async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    token = credentials.credentials
+    try:
+        payload = jwt.decode(token, settings.jwt_secret, algorithms=[settings.jwt_algorithm])
+        username = payload.get("sub")
+        if username is None:
+            raise HTTPException(status_code=401, detail="Invalid token")
+        return {"username": username}
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
 
 
-def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return pwd_context.verify(plain_password, hashed_password)
-
-
-def create_access_token(subject: str, expires_delta: int | None = None) -> str:
-    expire = datetime.now(timezone.utc) + timedelta(
-        minutes=expires_delta or settings.access_token_expire_minutes
-    )
-    payload = {"sub": subject, "exp": expire}
-    return jwt.encode(payload, settings.jwt_secret, algorithm=settings.jwt_algorithm)
+async def require_role(required_role: str, current_user=Depends(get_current_user)):
+    if current_user.get("role") != required_role:
+        raise HTTPException(status_code=403, detail="Forbidden")
+    return current_user

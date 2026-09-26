@@ -1,21 +1,26 @@
-from functools import lru_cache
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from fastapi.testclient import TestClient
+
+from app.main import app
+
+client = TestClient(app)
 
 
-class Settings(BaseSettings):
-    app_name: str = "AI-SOC"
-    api_v1_prefix: str = "/api"
-    debug: bool = True
-    database_url: str = "sqlite:///./ai_soc.db"
-    jwt_secret: str = "change-me-in-production"
-    jwt_algorithm: str = "HS256"
-    access_token_expire_minutes: int = 60
-    demo_mode: bool = True
-    use_mock_threat_intel: bool = True
-
-    model_config = SettingsConfigDict(env_file=".env")
+def test_health_check():
+    response = client.get("/health")
+    assert response.status_code == 200
+    assert response.json()["status"] == "ok"
 
 
-@lru_cache
-def get_settings() -> Settings:
-    return Settings()
+def test_dashboard_summary():
+    response = client.get("/api/dashboard/summary")
+    assert response.status_code == 200
+    data = response.json()
+    assert "total_alerts" in data
+    assert data["total_alerts"] >= 1
+
+
+def test_login():
+    response = client.post("/api/auth/login", json={"username": "admin", "password": "StrongPass123!"})
+    assert response.status_code == 200
+    body = response.json()
+    assert "access_token" in body

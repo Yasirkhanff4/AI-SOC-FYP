@@ -2,8 +2,6 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
 
 from app.core.config import get_settings
-from app.core.security import hash_password
-from app.models import User
 
 settings = get_settings()
 
@@ -27,11 +25,16 @@ def get_db():
 
 
 def create_db_and_tables():
+    from app import models  # noqa: F401
+
     Base.metadata.create_all(bind=engine)
 
 
 def ensure_default_admin():
     from sqlalchemy import select
+
+    from app.core.security import hash_password
+    from app.models import User
 
     db = SessionLocal()
     try:

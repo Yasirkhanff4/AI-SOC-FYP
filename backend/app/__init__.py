@@ -1,1 +1,13 @@
-# Schemas package
+fastapi==0.115.0
+uvicorn[standard]==0.30.6
+sqlalchemy==2.0.35
+psycopg2-binary==2.9.9
+pydantic==2.9.2
+pydantic-settings==2.5.2
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+python-dotenv==1.0.1
+httpx==0.27.2
+pytest==8.3.2
+pytest-asyncio==0.24.0
+reportlab==4.2.2
