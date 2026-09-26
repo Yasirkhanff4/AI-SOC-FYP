@@ -1,22 +1,14 @@
-from fastapi import APIRouter
-
-router = APIRouter(prefix="/threat-intel", tags=["threat-intel"])
-
-
-@router.get("/{ioc}")
-def get_threat_intel(ioc: str):
-    if "192.0.2" in ioc or "198.51.100" in ioc:
+def threat_lookup(value: str) -> dict:
+    if "192.0.2" in value or "198.51.100" in value:
         return {
-            "ioc": ioc,
-            "provider": "LOCAL_MOCK",
+            "ioc": value,
             "reputation": "SUSPICIOUS",
-            "score": 78,
-            "summary": "Synthetic malicious reputation lookup for lab demonstration",
+            "score": 82,
+            "provider": "LOCAL_MOCK",
         }
-    return {"ioc": ioc, "provider": "LOCAL_MOCK", "reputation": "UNKNOWN", "score": 12, "summary": "No strong reputation signal"}
-
-
-@router.post("/check")
-def check_threat_intel(payload: dict):
-    value = payload.get("value", "")
-    return get_threat_intel(value)
+    return {
+        "ioc": value,
+        "reputation": "UNKNOWN",
+        "score": 12,
+        "provider": "LOCAL_MOCK",
+    }

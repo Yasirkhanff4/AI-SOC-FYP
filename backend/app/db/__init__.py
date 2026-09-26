@@ -1,1 +1,1 @@
-# Routes package
+# Schemas package

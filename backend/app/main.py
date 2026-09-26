@@ -1,71 +1,58 @@
-from fastapi import APIRouter, Depends, HTTPException, status
-from pydantic import BaseModel
-from sqlalchemy import select
-from sqlalchemy.orm import Session
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.deps import get_current_user
-from app.core.security import create_access_token, hash_password, verify_password
-from app.database import get_db
-from app.models import User
+from app.api.routes.ai import router as ai_router
+from app.api.routes.alerts import router as alerts_router
+from app.api.routes.auth import router as auth_router
+from app.api.routes.dashboard import router as dashboard_router
+from app.api.routes.events import router as events_router
+from app.api.routes.incidents import router as incidents_router
+from app.api.routes.mitre import router as mitre_router
+from app.api.routes.reports import router as reports_router
+from app.api.routes.threat_intel import router as threat_intel_router
+from app.database import create_db_and_tables, ensure_default_admin
 
-router = APIRouter(prefix="/auth", tags=["auth"])
+app = FastAPI(
+    title="AI-SOC",
+    version="0.1.0",
+    description="AI-powered Security Operations Center for final-year cybersecurity project",
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
-class LoginRequest(BaseModel):
-    username: str
-    password: str
+@app.on_event("startup")
+def startup_event():
+    create_db_and_tables()
+    ensure_default_admin()
 
 
-class RegisterRequest(BaseModel):
-    username: str
-    email: str
-    password: str
+@app.get("/health")
+def health_check():
+    return {"status": "ok", "service": "ai-soc-backend"}
 
 
-@router.post("/login")
-def login(payload: LoginRequest, db: Session = Depends(get_db)):
-    user = db.execute(select(User).where(User.username == payload.username)).scalar_one_or_none()
-    if user is None or not verify_password(payload.password, user.password_hash):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
-
-    access_token = create_access_token(user.username)
+@app.get("/")
+def root():
     return {
-        "access_token": access_token,
-        "refresh_token": "demo-refresh-token",
-        "token_type": "bearer",
-        "user": {"username": user.username, "role": user.role},
+        "project": "AI-SOC",
+        "status": "initialized",
+        "message": "SOC backend started successfully",
     }
 
 
-@router.post("/register")
-def register(payload: RegisterRequest, db: Session = Depends(get_db)):
-    existing = db.execute(select(User).where(User.username == payload.username)).scalar_one_or_none()
-    if existing:
-        raise HTTPException(status_code=400, detail="User already exists")
-
-    user = User(
-        username=payload.username,
-        email=payload.email,
-        password_hash=hash_password(payload.password),
-        role="SOC_ANALYST",
-        is_active=True,
-    )
-    db.add(user)
-    db.commit()
-    db.refresh(user)
-    return {"message": "User created successfully", "username": user.username}
-
-
-@router.post("/refresh")
-def refresh():
-    return {"message": "JWT refresh endpoint scaffolded"}
-
-
-@router.post("/logout")
-def logout():
-    return {"message": "Logout successful"}
-
-
-@router.get("/me")
-def me(current_user=Depends(get_current_user)):
-    return {"user": current_user}
+app.include_router(auth_router, prefix="/api")
+app.include_router(dashboard_router, prefix="/api")
+app.include_router(events_router, prefix="/api")
+app.include_router(alerts_router, prefix="/api")
+app.include_router(incidents_router, prefix="/api")
+app.include_router(mitre_router, prefix="/api")
+app.include_router(threat_intel_router, prefix="/api")
+app.include_router(ai_router, prefix="/api")
+app.include_router(reports_router, prefix="/api")

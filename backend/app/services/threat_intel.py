@@ -1,20 +1,38 @@
-def generate_alert(payload: dict) -> dict:
-    event_type = payload.get("event_type", "authentication_failure")
-    source_ip = payload.get("source_ip", "192.0.2.10")
-    username = payload.get("username", "test-user")
-    severity = payload.get("severity", "HIGH")
-    confidence = int(payload.get("confidence", 75))
+def analyze_alert(payload: dict) -> dict:
+    alert_id = payload.get("alert_id", "unknown")
+    source_ip = payload.get("source_ip", "unknown")
+    host = payload.get("host", "unknown")
+    username = payload.get("username", "unknown")
+    detection_rule = payload.get("detection_rule", "UNKNOWN_RULE")
 
     return {
-        "title": f"{event_type.replace('_', ' ').title()} detected",
-        "description": f"Suspicious event from {source_ip} involving user {username}.",
-        "severity": severity,
-        "risk_score": 75,
-        "status": "NEW",
-        "source_ip": source_ip,
-        "destination_ip": payload.get("destination_ip", "10.0.0.5"),
-        "username": username,
-        "confidence": confidence,
-        "event_id": payload.get("event_id"),
-        "rule_id": payload.get("rule_id"),
+        "alert_id": alert_id,
+        "summary": f"Repeated authentication failures originated from {source_ip} against host {host} for user {username}. The activity matches a brute-force pattern and should be reviewed by an analyst.",
+        "attack_type": "Brute Force",
+        "severity_reason": "Multiple failed login attempts within a short time window and suspicious source behavior.",
+        "evidence": [
+            f"Source IP {source_ip} generated repeated failed logins",
+            f"Rule {detection_rule} triggered",
+            f"Target user {username} is affected",
+        ],
+        "mitre": [{"tactic": "Credential Access", "technique_id": "T1110", "technique_name": "Brute Force", "confidence": 0.82}],
+        "iocs": [{"type": "ipv4", "value": source_ip, "confidence": 0.8}],
+        "recommended_actions": [
+            "Validate the affected account",
+            "Review authentication logs for related failures",
+            "Check source IP reputation and block if policy allows",
+            "Confirm whether the activity is malicious or a lab simulation",
+        ],
+        "confidence": 0.82,
+        "uncertainty": ["Data may be synthetic and environment-limited"],
+    }
+
+
+def investigate_alert(payload: dict) -> dict:
+    return {
+        "answer": "This alert appears consistent with a brute-force or authentication anomaly. The strongest evidence is repeated failed logins from the same source in a short time window.",
+        "evidence": ["repeated failures", "single IP pattern", "suspicious login behavior"],
+        "inference": "Likely credential attack or abuse pattern",
+        "recommendation": "Validate the source, check account lockout history, and review edge-case logs.",
+        "uncertainty": ["No real-world internet evidence was used in demo mode"],
     }

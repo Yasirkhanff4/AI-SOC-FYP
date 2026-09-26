@@ -1,32 +1,22 @@
 from fastapi import APIRouter
 
-from app.services.ai_analysis import analyze_alert, investigate_alert
-
-router = APIRouter(prefix="/ai", tags=["ai"])
+router = APIRouter(prefix="/threat-intel", tags=["threat-intel"])
 
 
-@router.post("/analyze-alert")
-def analyze_alert_endpoint(payload: dict):
-    return analyze_alert(payload)
+@router.get("/{ioc}")
+def get_threat_intel(ioc: str):
+    if "192.0.2" in ioc or "198.51.100" in ioc:
+        return {
+            "ioc": ioc,
+            "provider": "LOCAL_MOCK",
+            "reputation": "SUSPICIOUS",
+            "score": 78,
+            "summary": "Synthetic malicious reputation lookup for lab demonstration",
+        }
+    return {"ioc": ioc, "provider": "LOCAL_MOCK", "reputation": "UNKNOWN", "score": 12, "summary": "No strong reputation signal"}
 
 
-@router.post("/investigate")
-def investigate_endpoint(payload: dict):
-    return investigate_alert(payload)
-
-
-@router.post("/explain")
-def explain_endpoint(payload: dict):
-    return {"summary": "This event was flagged due to repeated failed authentication and anomalous access patterns.", "confidence": 0.82}
-
-
-@router.post("/recommend-response")
-def response_endpoint(payload: dict):
-    return {
-        "recommended_actions": [
-            "Validate affected user account",
-            "Check source IP reputation",
-            "Review authentication logs",
-            "Consider temporary restriction based on organizational policy",
-        ]
-    }
+@router.post("/check")
+def check_threat_intel(payload: dict):
+    value = payload.get("value", "")
+    return get_threat_intel(value)

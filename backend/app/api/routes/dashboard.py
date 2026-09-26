@@ -28,9 +28,9 @@ def login(payload: LoginRequest, db: Session = Depends(get_db)):
     if user is None or not verify_password(payload.password, user.password_hash):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
 
-    access_token = create_access_token(user.username)
+    token = create_access_token(user.username, user.role)
     return {
-        "access_token": access_token,
+        "access_token": token,
         "refresh_token": "demo-refresh-token",
         "token_type": "bearer",
         "user": {"username": user.username, "role": user.role},

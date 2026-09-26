@@ -12,14 +12,17 @@ router = APIRouter(prefix="/alerts", tags=["alerts"])
 @router.get("")
 def list_alerts(db: Session = Depends(get_db)):
     alerts = db.query(Alert).all()
-    return [{
-        "id": alert.id,
-        "title": alert.title,
-        "severity": alert.severity,
-        "status": alert.status,
-        "risk_score": alert.risk_score,
-        "source_ip": alert.source_ip,
-    } for alert in alerts]
+    return [
+        {
+            "id": alert.id,
+            "title": alert.title,
+            "severity": alert.severity,
+            "status": alert.status,
+            "risk_score": alert.risk_score,
+            "source_ip": alert.source_ip,
+        }
+        for alert in alerts
+    ]
 
 
 @router.get("/{alert_id}")
@@ -67,14 +70,16 @@ def analyze_alert_endpoint(alert_id: int, db: Session = Depends(get_db)):
     alert = db.query(Alert).filter(Alert.id == alert_id).first()
     if not alert:
         raise HTTPException(status_code=404, detail="Alert not found")
-    result = analyze_alert({
-        "alert_id": alert.id,
-        "event_type": "authentication_failure",
-        "source_ip": alert.source_ip,
-        "username": alert.username,
-        "host": "LAB-PC-01",
-        "detection_rule": "BRUTE_FORCE_001",
-    })
+    result = analyze_alert(
+        {
+            "alert_id": alert.id,
+            "event_type": "authentication_failure",
+            "source_ip": alert.source_ip,
+            "username": alert.username,
+            "host": "LAB-PC-01",
+            "detection_rule": "BRUTE_FORCE_001",
+        }
+    )
     return result
 
 

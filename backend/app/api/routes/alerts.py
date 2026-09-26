@@ -10,13 +10,16 @@ router = APIRouter(prefix="/events", tags=["events"])
 @router.get("")
 def list_events(db: Session = Depends(get_db)):
     events = db.query(Event).all()
-    return [{
-        "id": event.id,
-        "timestamp": event.timestamp.isoformat() if event.timestamp else None,
-        "source": event.source,
-        "event_type": event.event_type,
-        "host_id": event.host_id,
-    } for event in events]
+    return [
+        {
+            "id": event.id,
+            "timestamp": event.timestamp.isoformat() if event.timestamp else None,
+            "source": event.source,
+            "event_type": event.event_type,
+            "host_id": event.host_id,
+        }
+        for event in events
+    ]
 
 
 @router.get("/{event_id}")
