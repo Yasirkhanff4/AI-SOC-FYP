@@ -1,0 +1,46 @@
+# AI-SOC FYP
+
+Repository root for the AI-powered SOC project.
+
+## Overview
+
+This project implements a modular final-year SOC platform using FastAPI + React + PostgreSQL with support for synthetic data, AI-assisted investigation, rule-based detection, and incident response workflows.
+
+## Included Implementation Status
+
+This repo is structured as a working starter and phase-based foundation. The following are already scaffolded:
+
+- backend FastAPI app shell
+- auth API route structure
+- dashboard route structure
+- incident and alert schemas
+- risk-scoring utilities
+- frontend React + Vite shell
+- docs and architecture files
+- Docker Compose template
+- environment examples
+
+## Important Note
+
+This repository is a foundational FYP implementation. It is intentionally structured for phased development per your instruction set. The app can be extended full-scale by implementing each module in sequence.
+
+## Development Order Followed
+
+1. Project architecture
+2. Database design
+3. Authentication / RBAC foundation
+4. Backend API skeleton
+5. Dashboard shell
+6. Documentation and FYP guidance
+
+## Next Steps
+
+Continue by implementing:
+- full SQLAlchemy models and migrations
+- JWT auth with user roles
+- detection engine logic
+- ML training pipeline
+- AI analysis service
+- incident workflows
+- PDF report generation
+- tests and Docker validation
