@@ -1,56 +1,21 @@
-# Phase 1 Implementation Plan
+from functools import lru_cache
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
-## Phase 1: Project Architecture
 
-### Purpose
-Set up the core structure and define a modular foundation for the final-year project.
+class Settings(BaseSettings):
+    app_name: str = "AI-SOC"
+    api_v1_prefix: str = "/api"
+    debug: bool = True
+    database_url: str = "sqlite:///./ai_soc.db"
+    jwt_secret: str = "change-me-in-production"
+    jwt_algorithm: str = "HS256"
+    access_token_expire_minutes: int = 60
+    demo_mode: bool = True
+    use_mock_threat_intel: bool = True
 
-### Deliverables
-- monorepo layout
-- project goals
-- backend framework foundation
-- frontend framework foundation
-- documentation structure
-- architecture and design planning
+    model_config = SettingsConfigDict(env_file=".env")
 
-### Files Created in Phase 1
-- README.md
-- .gitignore
-- .env.example
-- docker-compose.yml
-- docs/architecture/architecture.md
-- docs/architecture/erd.md
-- docs/architecture/api-contract.md
-- docs/requirements/requirements-spec.md
-- backend/requirements.txt
-- backend/app/main.py
-- backend/app/core/config.py
-- backend/app/core/security.py
-- backend/app/api/routes/auth.py
-- backend/app/api/routes/dashboard.py
-- backend/app/api/deps.py
-- backend/app/schemas/user.py
-- frontend/package.json
-- frontend/src/App.tsx
-- frontend/src/main.tsx
 
-### Verification
-- backend app starts successfully
-- frontend app loads without build errors
-- repo structure reflects the design
-
-## Phase 2 (Next)
-
-Database models and migrations.
-
-## Phase 3
-
-Authentication and RBAC implementation.
-
-## Phase 4
-
-API layer expansion and event ingestion.
-
-## Phase 5+
-
-Detection engine, ML, AI analyst, threat intel, MITRE, incidents, reports.
+@lru_cache
+def get_settings() -> Settings:
+    return Settings()

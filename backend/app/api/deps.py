@@ -1,26 +1,26 @@
-from datetime import datetime, timedelta, timezone
-from typing import Any
+from fastapi.testclient import TestClient
 
-from jose import jwt
-from passlib.context import CryptContext
+from app.main import app
 
-from app.core.config import get_settings
-
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-settings = get_settings()
+client = TestClient(app)
 
 
-def hash_password(password: str) -> str:
-    return pwd_context.hash(password)
+def test_health_check():
+    response = client.get("/health")
+    assert response.status_code == 200
+    assert response.json()["status"] == "ok"
 
 
-def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return pwd_context.verify(plain_password, hashed_password)
+def test_dashboard_summary():
+    response = client.get("/api/dashboard/summary")
+    assert response.status_code == 200
+    data = response.json()
+    assert "total_alerts" in data
+    assert data["total_alerts"] >= 1
 
 
-def create_access_token(subject: str, expires_delta: int | None = None) -> str:
-    expire = datetime.now(timezone.utc) + timedelta(
-        minutes=expires_delta or settings.access_token_expire_minutes
-    )
-    payload = {"sub": subject, "exp": expire}
-    return jwt.encode(payload, settings.jwt_secret, algorithm=settings.jwt_algorithm)
+def test_login():
+    response = client.post("/api/auth/login", json={"username": "admin", "password": "StrongPass123!"})
+    assert response.status_code == 200
+    body = response.json()
+    assert "access_token" in body

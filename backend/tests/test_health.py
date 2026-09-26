@@ -1,29 +1,14 @@
-from typing import Dict
-
-
-def calculate_risk_score(alert_context: Dict) -> int:
-    severity_weight = {
-        "LOW": 15,
-        "MEDIUM": 30,
-        "HIGH": 50,
-        "CRITICAL": 75,
+def threat_lookup(value: str) -> dict:
+    if "192.0.2" in value or "198.51.100" in value:
+        return {
+            "ioc": value,
+            "reputation": "SUSPICIOUS",
+            "score": 82,
+            "provider": "LOCAL_MOCK",
+        }
+    return {
+        "ioc": value,
+        "reputation": "UNKNOWN",
+        "score": 12,
+        "provider": "LOCAL_MOCK",
     }
-
-    score = severity_weight.get(alert_context.get("severity", "LOW"), 15)
-    score += int((alert_context.get("confidence", 0.5) * 20))
-    score += int(alert_context.get("ioc_reputation", 0) * 10)
-    score += int(alert_context.get("correlation_score", 0) * 10)
-
-    if score > 100:
-        score = 100
-    return score
-
-
-def classify_risk(score: int) -> str:
-    if score <= 24:
-        return "LOW"
-    if score <= 49:
-        return "MEDIUM"
-    if score <= 74:
-        return "HIGH"
-    return "CRITICAL"

@@ -1,29 +1,25 @@
-from fastapi import Depends, HTTPException, status
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from jose import JWTError, jwt
+from datetime import datetime, timedelta, timezone
+
+from jose import jwt
+from passlib.context import CryptContext
 
 from app.core.config import get_settings
 
-security = HTTPBearer()
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 settings = get_settings()
 
 
-async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
-    token = credentials.credentials
-    try:
-        payload = jwt.decode(token, settings.jwt_secret, algorithms=[settings.jwt_algorithm])
-        username: str | None = payload.get("sub")
-        if username is None:
-            raise HTTPException(status_code=401, detail="Invalid token")
-        return {"username": username}
-    except JWTError:
-        raise HTTPException(status_code=401, detail="Invalid or expired token")
+def hash_password(password: str) -> str:
+    return pwd_context.hash(password)
 
 
-async def require_admin(current_user=Depends(get_current_user)):
-    if current_user.get("username") != "admin":
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Administrator access required",
-        )
-    return current_user
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    return pwd_context.verify(plain_password, hashed_password)
+
+
+def create_access_token(subject: str, expires_delta: int | None = None) -> str:
+    expire = datetime.now(timezone.utc) + timedelta(
+        minutes=expires_delta or settings.access_token_expire_minutes
+    )
+    payload = {"sub": subject, "exp": expire}
+    return jwt.encode(payload, settings.jwt_secret, algorithm=settings.jwt_algorithm)

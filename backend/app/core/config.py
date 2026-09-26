@@ -1,28 +1,20 @@
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
+from app.database import Base
+from app.database import Alert, AIAnalysis, AuditLog, DetectionRule, Event, Host, IOC, Incident, IncidentAlert, IncidentNote, MITREMapping, ResponseAction, ThreatIntel, User
 
-app = FastAPI(
-    title="AI-SOC",
-    version="0.1.0",
-    description="AI-powered Security Operations Center for final-year cybersecurity project",
-)
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-@app.get("/health")
-def health_check():
-    return {"status": "ok", "service": "ai-soc-backend"}
-
-@app.get("/")
-def root():
-    return {
-        "project": "AI-SOC",
-        "status": "initialized",
-        "message": "SOC backend started successfully"
-    }
+__all__ = [
+    "Base",
+    "User",
+    "Host",
+    "Event",
+    "DetectionRule",
+    "Alert",
+    "IOC",
+    "ThreatIntel",
+    "MITREMapping",
+    "Incident",
+    "IncidentAlert",
+    "IncidentNote",
+    "ResponseAction",
+    "AIAnalysis",
+    "AuditLog",
+]
